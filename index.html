@@ -399,8 +399,7 @@ function downloadPDF(){
   const bl=doc.splitTextToSize(banner,W-margin*2-20);
   doc.text(bl,W/2,y+10+(bl.length===1?4:0),{align:'center'});
 
-  const safeName=name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-  doc.save(`perfil-cobertura-${safeName||'ua'}.pdf`);
+  doc.save('UA Perfiles.pdf');
 }
 
 buildPlanNames();buildCoverageRows();buildFeatureRows();render();
