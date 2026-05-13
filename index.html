@@ -37,7 +37,7 @@ textarea{resize:vertical;min-height:52px}
 .preview-area{flex:1;padding:24px;overflow-y:auto;display:flex;flex-direction:column;align-items:center;background:#f0f2f5}
 .preview-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;margin-bottom:12px;align-self:flex-start}
 .pdf-page-wrap{transform-origin:top center;transform:scale(0.90);margin-bottom:calc((842px * 0.90) - 842px)}
-.pdf-page{background:white;width:595px;min-height:842px;box-shadow:0 2px 20px rgba(0,0,0,.15);border-radius:4px;overflow:hidden;font-family:'Helvetica Neue',Arial,sans-serif;color:#222}
+.pdf-page{background:white;width:var(--page-w,595px);min-height:var(--page-h,842px);box-shadow:0 2px 20px rgba(0,0,0,.15);border-radius:4px;overflow:hidden;font-family:'Helvetica Neue',Arial,sans-serif;color:#222}
 .pdf-header{background:#0B1F3A;padding:16px 28px;display:flex;align-items:center;gap:14px}
 .pdf-logo{display:flex;align-items:center}
 .pdf-product-title{color:white;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-left:auto;opacity:.85}
@@ -359,6 +359,22 @@ function drawSubHeader(doc, y, W, margin){
   }
 }
 
+function updatePageSize(){
+  const page = document.querySelector('.pdf-page');
+  if(!page) return;
+  if(numPlans >= 4){
+    page.style.setProperty('--page-w','841px');
+    page.style.setProperty('--page-h','595px');
+    page.style.width='841px';
+    page.style.minHeight='595px';
+  } else {
+    page.style.setProperty('--page-w','595px');
+    page.style.setProperty('--page-h','842px');
+    page.style.width='595px';
+    page.style.minHeight='842px';
+  }
+}
+
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -417,11 +433,14 @@ function downloadPDF(){
     return;
   }
   const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4'});
+  const orientation = numPlans >= 4 ? 'landscape' : 'portrait';
+  const doc=new jsPDF({orientation:orientation,unit:'pt',format:'a4'});
   const name=planNames[0]||'perfil-cobertura';
   const footnote=document.getElementById('footnote').value;
   const banner=document.getElementById('banner').value;
-  const W=595, margin=28, H=841, bottomReserve=110;
+  const W = numPlans >= 4 ? 841 : 595;
+  const H = numPlans >= 4 ? 595 : 841;
+  const margin=28, bottomReserve=110;
   let y=0;
 
   drawHeader(doc,name,W,margin);
