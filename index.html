@@ -373,19 +373,23 @@ function cleanCovName(s){
 }
 
 function downloadPDF(){
-  // Validate coverages - at least one row with name and value filled
-  const filledCoverages = coverages.filter(c => c.name.trim() !== '');
-  if(filledCoverages.length === 0){
+  // Validate coverages - all rows must be complete or removed
+  if(coverages.length === 0 || coverages.every(c => c.name.trim() === '')){
     showToast('⚠️ Agregá al menos una cobertura');
     return;
   }
-  const missingVals = filledCoverages.some(c => {
-    for(let i=0;i<numPlans;i++){ if(!c.vals[i].trim()) return true; }
-    return false;
-  });
-  if(missingVals){
-    showToast('⚠️ Completá todos los valores de cobertura');
-    return;
+  for(let ci=0; ci<coverages.length; ci++){
+    const c = coverages[ci];
+    if(c.name.trim() === ''){
+      showToast('⚠️ Hay coberturas vacías. Completalas o eliminalas');
+      return;
+    }
+    for(let i=0;i<numPlans;i++){
+      if(!c.vals[i].trim()){
+        showToast(`⚠️ Falta el valor de "${c.name.trim()}" para ${planNames[i]||'Plan '+(i+1)}`);
+        return;
+      }
+    }
   }
 
   // Validate plan names
