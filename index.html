@@ -9,7 +9,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#222}
 .app{display:flex;height:100vh;min-height:600px}
-.sidebar{width:360px;min-width:360px;background:#fff;border-right:1px solid #e2e8f0;overflow-y:auto;display:flex;flex-direction:column}
+.sidebar{width:360px;min-width:200px;background:#fff;overflow-y:auto;display:flex;flex-direction:column}
 .sidebar-header{padding:16px 20px;border-bottom:1px solid #e2e8f0;background:#0B1F3A}
 .section{padding:14px 20px;border-bottom:1px solid #e2e8f0}
 .section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:#64748b;margin-bottom:10px}
@@ -68,6 +68,9 @@ textarea{resize:vertical;min-height:52px}
 .feat-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}
 .feat-row input{flex:1}
 .feat-icon-sel{width:38px;min-width:38px;height:30px;text-align:center;font-size:14px;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc;cursor:pointer;font-family:inherit}
+.resizer{width:6px;background:#e2e8f0;cursor:col-resize;flex-shrink:0;transition:background .15s;position:relative;z-index:10}
+.resizer:hover,.resizer.dragging{background:#E8196E}
+.resizer::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:40px;background:rgba(0,0,0,.15);border-radius:2px}
 </style>
 </head>
 <body>
@@ -119,6 +122,7 @@ textarea{resize:vertical;min-height:52px}
     </div>
     <button class="generate-btn" onclick="downloadPDF()">⬇ Descargar PDF</button>
   </div>
+  <div class="resizer" id="resizer"></div>
   <div class="preview-area">
     <div class="preview-label">Vista previa</div>
     <div class="pdf-page-wrap"><div class="pdf-page" id="pdfPreview"></div></div>
@@ -160,6 +164,30 @@ function setPlans(n){
   numPlans=n;
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n-1));
   buildPlanNames();buildCoverageRows();render();
+
+// Resizer drag logic
+const resizer = document.getElementById('resizer');
+const sidebar = document.querySelector('.sidebar');
+let isResizing = false, startX = 0, startW = 0;
+resizer.addEventListener('mousedown', e => {
+  isResizing = true;
+  startX = e.clientX;
+  startW = sidebar.offsetWidth;
+  resizer.classList.add('dragging');
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+});
+document.addEventListener('mousemove', e => {
+  if (!isResizing) return;
+  const newW = Math.min(700, Math.max(200, startW + (e.clientX - startX)));
+  sidebar.style.width = newW + 'px';
+});
+document.addEventListener('mouseup', () => {
+  isResizing = false;
+  resizer.classList.remove('dragging');
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
+});
 }
 function buildPlanNames(){
   const w=document.getElementById('planNamesWrap');
