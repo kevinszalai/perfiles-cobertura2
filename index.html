@@ -271,10 +271,9 @@ function render(){
   const footnote=document.getElementById('footnote').value;
   const banner=document.getElementById('banner').value;
   let colHdr='<span class="pdf-col-header-name"></span>';
-  if(numPlans===1)colHdr+='';
+  if(numPlans===1)colHdr+=`<span class="pdf-col-header-val">${escH(planNames[0]||'')}</span>`;
   else for(let i=0;i<numPlans;i++)colHdr+=`<span class="pdf-col-header-val-c">${escH(planNames[i]||'')}</span>`;
   let badges='';
-  for(let i=0;i<numPlans;i++)badges+=`<span class="pdf-plan-badge">${escH(planNames[i]||'')}</span>`;
   let rows=coverages.map(c=>{
     let v=numPlans===1?`<span class="pdf-cov-val">${escH(c.vals[0]||'—')}</span>`:Array.from({length:numPlans},(_,i)=>`<span class="pdf-cov-val-multi">${escH(c.vals[i]||'—')}</span>`).join('');
     return `<div class="pdf-cov-row"><span class="pdf-cov-name">${escH(cleanCovName(c.name))}</span>${v}</div>`;
@@ -283,7 +282,7 @@ function render(){
   document.getElementById('pdfPreview').innerHTML=`
     <div class="pdf-header">
       <div class="pdf-logo"><img src="${LOGO_DATA}" style="height:36px;width:auto;display:block;mix-blend-mode:screen" alt="UA"></div>
-      <div class="pdf-plan-badges">${badges}</div>
+
     </div>
     <div class="pdf-body">
       <div class="pdf-table-wrapper">
@@ -329,19 +328,7 @@ function drawTableHeader(doc, y, W, margin){
   doc.roundedRect(margin,y,W-margin*2,28,6,6,'F');
   doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
   doc.text('COBERTURAS',margin+14,y+18);
-  if(true){
-    let bx=W-margin-12;
-    for(let i=numPlans-1;i>=0;i--){
-      const label=planNames[i]||'';
-      const tw=doc.getTextWidth(label)+18;
-      bx-=tw;
-      doc.setFillColor(40,70,120);
-      doc.roundedRect(bx,y+6,tw,16,3,3,'F');
-      doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
-      doc.text(label,bx+tw/2,y+17,{align:'center'});
-      bx-=5;
-    }
-  }
+
   return y+28;
 }
 
@@ -482,7 +469,7 @@ function downloadPDF(){
 
     // Draw values
     doc.setFont('helvetica','bold');doc.setTextColor(11,31,58);
-    if(numPlans===1){
+    if(false){
       const val = c.vals[0]||'—';
       const vlines = doc.splitTextToSize(val, valsTotalW-8);
       const vStartY = y + (rowH - vlines.length*(fontSize+2))/2 + fontSize;
