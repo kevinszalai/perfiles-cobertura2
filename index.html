@@ -113,7 +113,7 @@ textarea{resize:vertical;min-height:52px}
       </div>
       <div id="coverageList"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-        <button class="add-btn" onclick="addCoverage()">+ Agregar cobertura</button>
+        <button class="add-btn" onclick="addCoverage()">+ Agregar nueva fila</button>
         <button onclick="clearCoverages()" style="font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;font-family:inherit;padding:4px 0" onmouseover="this.style.color='#c0392b'" onmouseout="this.style.color='#94a3b8'">🗑 Borrar todo</button>
       </div>
     </div>
@@ -271,7 +271,7 @@ function render(){
   const footnote=document.getElementById('footnote').value;
   const banner=document.getElementById('banner').value;
   let colHdr='<span class="pdf-col-header-name"></span>';
-  if(numPlans===1)colHdr+='<span class="pdf-col-header-val">Cobertura</span>';
+  if(numPlans===1)colHdr+='';
   else for(let i=0;i<numPlans;i++)colHdr+=`<span class="pdf-col-header-val-c">${escH(planNames[i]||'')}</span>`;
   let badges='';
   for(let i=0;i<numPlans;i++)badges+=`<span class="pdf-plan-badge">${escH(planNames[i]||'')}</span>`;
@@ -363,7 +363,7 @@ function drawSubHeader(doc, y, W, margin){
     doc.setFillColor(26,53,88);
     doc.rect(margin,y,tableW,15,'F');
     doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(190,210,235);
-    doc.text('COBERTURA', W-margin-10, y+10.5, {align:'right'});
+
     return y+15;
   }
 }
