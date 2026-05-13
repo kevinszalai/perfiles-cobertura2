@@ -107,7 +107,10 @@ textarea{resize:vertical;min-height:52px}
         <span style="width:28px"></span>
       </div>
       <div id="coverageList"></div>
-      <button class="add-btn" onclick="addCoverage()">+ Agregar cobertura</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <button class="add-btn" onclick="addCoverage()">+ Agregar cobertura</button>
+        <button onclick="clearCoverages()" style="font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;font-family:inherit;padding:4px 0" onmouseover="this.style.color='#c0392b'" onmouseout="this.style.color='#94a3b8'">🗑 Borrar todo</button>
+      </div>
     </div>
 
     <div class="section">
@@ -116,11 +119,10 @@ textarea{resize:vertical;min-height:52px}
 
     </div>
     <div class="section">
-      <div class="section-title">Textos legales</div>
-      <label>Notas al pie</label>
-      <textarea id="footnote" oninput="render()" rows="3" style="font-size:11px">*incluido dentro del límite de asistencia médica. ***o el mínimo establecido por autoridad gubernamental en país de destino</textarea>
+      <label>Legales <span style="color:#E8196E">*</span></label>
+      <textarea id="footnote" oninput="render()" rows="3" style="font-size:11px" placeholder="Campo obligatorio"></textarea>
       <div style="margin-top:8px">
-        <label>Banner legal (parte inferior)</label>
+        <label>Banner</label>
         <textarea id="banner" oninput="render()" rows="2" style="font-size:11px">Consulta con tu asesor de ventas la totalidad de nuestras coberturas y las novedades que tenemos para ti</textarea>
       </div>
     </div>
@@ -138,22 +140,7 @@ const LOGO_DATA = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABwsAAANCCAYAAAC
 let numPlans = 1;
 let planNames = ['Plan 1','Plan 2','Plan 3','Plan 4','Plan 5','Plan 6'];
 let coverages = [
-  {name:'Asistencia médica en caso de enfermedad o accidente (cubre Covid19-SARSCOV2)',vals:['USD 20.000','USD 30.000','USD 50.000','USD 70.000','USD 90.000','USD 100.000']},
-  {name:'Asistencia médica en caso de preexistencia *',vals:['USD 5.000','USD 8.000','USD 12.000']},
-  {name:'Teleasistencia',vals:['Incluido','Incluido','Incluido']},
-  {name:'Gastos de hotel por convalecencia por Covid19-SARSCOV2',vals:['USD 1.000***','USD 1.500***','USD 2.000***']},
-  {name:'Medicamentos ambulatorios*.',vals:['USD 500','USD 750','USD 1.000']},
-  {name:'Odontología',vals:['USD 500','USD 750','USD 1.000']},
-  {name:'Días corridos por viaje',vals:['30 días','45 días','60 días']},
-  {name:'Gastos de hotel por convalecencia - Total',vals:['USD 1.000','USD 1.500','USD 2.000']},
-  {name:'Gastos de hotel familiar acompañante *',vals:['Incluido','Incluido','Incluido']},
-  {name:'Traslado de familiar en caso de hospitalización*',vals:['Incluido','Incluido','Incluido']},
-  {name:'Repatriación de restos*',vals:['Incluido','Incluido','Incluido']},
-  {name:'Repatriación sanitaria*',vals:['Incluido','Incluido','Incluido']},
-  {name:'Anticipo de fondos para fianzas',vals:['USD 8.000','USD 10.000','USD 12.000']},
-  {name:'Asistencia legal en caso de accidente',vals:['USD 5.000','USD 7.000','USD 10.000']},
-  {name:'Límite de edad',vals:['Ilimitado','Ilimitado','Ilimitado']},
-  {name:'Ámbito de cobertura',vals:['Países limítrofes','Mundo exc. EEUU','Mundo']},
+  {name:'',vals:['','','','','','']},
 ];
 let features = [
   {icon:'🦠',label:'Cobertura frente a covid-19',sub:'Consulta las tarifas especiales'},
@@ -241,8 +228,8 @@ function buildCoverageRows(){
   hh+='<span style="width:28px"></span>';hdr.innerHTML=hh;
   let h='';
   coverages.forEach((c,ci)=>{
-    h+=`<div class="coverage-row"><input class="cov-name" type="text" value="${escH(c.name)}" oninput="coverages[${ci}].name=this.value;render()">`;
-    for(let i=0;i<numPlans;i++)h+=`<input class="cov-val" type="text" value="${escH(c.vals[i]||'')}" placeholder="valor" oninput="coverages[${ci}].vals[${i}]=this.value;render()">`;
+    h+=`<div class="coverage-row"><input class="cov-name" type="text" value="${escH(c.name)}" oninput="coverages[${ci}].name=this.value;render()" placeholder="Cobertura">`;
+    for(let i=0;i<numPlans;i++)h+=`<input class="cov-val" type="text" value="${escH(c.vals[i]||'')}" placeholder="Valor" oninput="coverages[${ci}].vals[${i}]=this.value;render()">`;
     h+=`<button class="del-btn" onclick="removeCoverage(${ci})">×</button></div>`;
   });
   list.innerHTML=h;
@@ -255,7 +242,12 @@ function buildFeatureRows(){
   });
   list.innerHTML=h;
 }
-function addCoverage(){coverages.push({name:'Nueva cobertura',vals:['','','','','','']});buildCoverageRows();render();}
+function clearCoverages(){
+  coverages = [{name:'',vals:['','','','','','']}];
+  buildCoverageRows();render();
+}
+
+function addCoverage(){coverages.push({name:'',vals:['','','','','','']});buildCoverageRows();render();}
 function removeCoverage(i){coverages.splice(i,1);buildCoverageRows();render();}
 function addFeature(){features.push({icon:'🛡️',label:'Título',sub:'Descripción'});buildFeatureRows();render();}
 function removeFeature(i){features.splice(i,1);buildFeatureRows();render();}
@@ -368,6 +360,16 @@ function cleanCovName(s){
 }
 
 function downloadPDF(){
+  const footnoteVal = document.getElementById('footnote').value.trim();
+  if(!footnoteVal){
+    const el = document.getElementById('footnote');
+    el.style.borderColor = '#E8196E';
+    el.style.boxShadow = '0 0 0 2px rgba(232,25,110,0.2)';
+    el.focus();
+    el.placeholder = 'Este campo es obligatorio';
+    setTimeout(()=>{ el.style.borderColor=''; el.style.boxShadow=''; }, 3000);
+    return;
+  }
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4'});
   const name=planNames[0]||'perfil-cobertura';
@@ -393,7 +395,14 @@ function downloadPDF(){
 
     doc.setFontSize(fontSize); doc.setFont('helvetica','normal');
     const nameLines = doc.splitTextToSize(cleanCovName(c.name), nameColW - 8);
-    const rowH = Math.max(16, nameLines.length * (fontSize + 3) + 6);
+    // Calculate max lines needed for any value cell
+    const valColWtmp = (tableW - (numPlans===1 ? tableW-100 : Math.floor(tableW*0.40)) - 16) / numPlans;
+    let maxValLines = 1;
+    for(let i=0;i<numPlans;i++){
+      const vl = doc.splitTextToSize(c.vals[i]||'—', valColWtmp-4);
+      if(vl.length > maxValLines) maxValLines = vl.length;
+    }
+    const rowH = Math.max(16, Math.max(nameLines.length, maxValLines) * (fontSize + 3) + 6);
 
     // Page break check
     if(y + rowH > H - bottomReserve){
@@ -418,14 +427,17 @@ function downloadPDF(){
 
     // Draw values
     doc.setFont('helvetica','bold');doc.setTextColor(11,31,58);
-    const valY = y + rowH/2 + fontSize/3;
     if(numPlans===1){
-      doc.text(c.vals[0]||'—', margin+8+nameColW+8+valsTotalW/2, valY, {align:'center'});
+      const val = c.vals[0]||'—';
+      const vlines = doc.splitTextToSize(val, valsTotalW-8);
+      const vStartY = y + (rowH - vlines.length*(fontSize+2))/2 + fontSize;
+      doc.text(vlines, margin+8+nameColW+8+valsTotalW/2, vStartY, {align:'center'});
     } else {
       for(let i=0;i<numPlans;i++){
         const val = c.vals[i]||'—';
         const vlines = doc.splitTextToSize(val, colW-4);
-        doc.text(vlines[0], margin+8+nameColW+8+colW*i+colW/2, valY, {align:'center'});
+        const vStartY = y + (rowH - vlines.length*(fontSize+2))/2 + fontSize;
+        doc.text(vlines, margin+8+nameColW+8+colW*i+colW/2, vStartY, {align:'center'});
       }
     }
     doc.setDrawColor(215,225,238);doc.setLineWidth(0.3);
