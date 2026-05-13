@@ -68,6 +68,9 @@ textarea{resize:vertical;min-height:52px}
 .feat-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}
 .feat-row input{flex:1}
 .feat-icon-sel{width:38px;min-width:38px;height:30px;text-align:center;font-size:14px;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc;cursor:pointer;font-family:inherit}
+.paste-btn{font-size:11px;color:#0B1F3A;background:#e8f0f9;border:1px solid #b8d0ea;border-radius:5px;padding:4px 8px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .15s}
+.paste-btn:hover{background:#d0e4f5}
+.paste-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .resizer{width:6px;background:#e2e8f0;cursor:col-resize;flex-shrink:0;transition:background .15s;position:relative;z-index:10}
 .resizer:hover,.resizer.dragging{background:#E8196E}
 .resizer::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:40px;background:rgba(0,0,0,.15);border-radius:2px}
@@ -97,6 +100,7 @@ textarea{resize:vertical;min-height:52px}
     </div>
     <div class="section">
       <div class="section-title">Coberturas</div>
+      <div class="paste-row" id="pasteBtns"></div>
       <div class="col-headers" id="colHeaders">
         <span style="flex:2">Cobertura</span>
         <span style="flex:1;text-align:right">Valor</span>
@@ -163,7 +167,7 @@ function escH(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').r
 function setPlans(n){
   numPlans=n;
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n-1));
-  buildPlanNames();buildCoverageRows();render();
+  buildPlanNames();buildCoverageRows();buildPasteButtons();render();
 
 // Resizer drag logic
 const resizer = document.getElementById('resizer');
@@ -189,10 +193,44 @@ document.addEventListener('mouseup', () => {
   document.body.style.userSelect = '';
 });
 }
+function buildPasteButtons(){
+  const wrap = document.getElementById('pasteBtns');
+  if(!wrap) return;
+  let h = '<button class="paste-btn" onclick="pasteColumn(-1)">📋 Pegar coberturas</button>';
+  for(let i=0;i<numPlans;i++){
+    h += `<button class="paste-btn" onclick="pasteColumn(${i})">📋 ${planNames[i]||'Plan '+(i+1)}</button>`;
+  }
+  wrap.innerHTML = h;
+}
+
+async function pasteColumn(colIndex){
+  let text = '';
+  try {
+    text = await navigator.clipboard.readText();
+  } catch(e) {
+    return;
+  }
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l!=='');
+  if(colIndex === -1){
+    // Paste coverage names — resize array to match
+    while(coverages.length < lines.length) coverages.push({name:'',vals:['','','','','','']});
+    lines.forEach((l,i)=>{ coverages[i].name = l; });
+    // Trim excess rows if pasted fewer
+    coverages = coverages.slice(0, lines.length);
+  } else {
+    // Paste values for a specific plan column
+    while(coverages.length < lines.length) coverages.push({name:'',vals:['','','','','','']});
+    lines.forEach((l,i)=>{ coverages[i].vals[colIndex] = l; });
+  }
+  buildCoverageRows();
+  buildPasteButtons();
+  render();
+}
+
 function buildPlanNames(){
   const w=document.getElementById('planNamesWrap');
   let h='<div style="display:flex;gap:6px;margin-top:6px">';
-  for(let i=0;i<numPlans;i++)h+=`<div style="flex:1"><label>Plan ${i+1}</label><input type="text" value="${escH(planNames[i]||'Plan '+(i+1))}" oninput="planNames[${i}]=this.value;render()" style="font-size:12px"></div>`;
+  for(let i=0;i<numPlans;i++)h+=`<div style="flex:1"><label>Plan ${i+1}</label><input type="text" value="${escH(planNames[i]||'Plan '+(i+1))}" oninput="planNames[${i}]=this.value;buildPasteButtons();render()" style="font-size:12px"></div>`;
   h+='</div>';w.innerHTML=h;
 }
 function buildCoverageRows(){
