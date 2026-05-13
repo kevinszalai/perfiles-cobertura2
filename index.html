@@ -271,7 +271,7 @@ function render(){
   for(let i=0;i<numPlans;i++)badges+=`<span class="pdf-plan-badge">${escH(planNames[i]||'Plan '+(i+1))}</span>`;
   let rows=coverages.map(c=>{
     let v=numPlans===1?`<span class="pdf-cov-val">${escH(c.vals[0]||'—')}</span>`:Array.from({length:numPlans},(_,i)=>`<span class="pdf-cov-val-multi">${escH(c.vals[i]||'—')}</span>`).join('');
-    return `<div class="pdf-cov-row"><span class="pdf-cov-name">${escH(c.name)}</span>${v}</div>`;
+    return `<div class="pdf-cov-row"><span class="pdf-cov-name">${escH(cleanCovName(c.name))}</span>${v}</div>`;
   }).join('');
   let icons=features.map(f=>`<div class="pdf-icon-card"><div><div class="pdf-icon-label">${escH(f.label)}</div><div class="pdf-icon-sub">${escH(f.sub)}</div></div></div>`).join('');
   document.getElementById('pdfPreview').innerHTML=`
