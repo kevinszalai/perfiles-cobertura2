@@ -37,7 +37,7 @@ textarea{resize:vertical;min-height:52px}
 .preview-area{flex:1;padding:24px;overflow-y:auto;display:flex;flex-direction:column;align-items:center;background:#f0f2f5}
 .preview-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;margin-bottom:12px;align-self:flex-start}
 .pdf-page-wrap{transform-origin:top center;transform:scale(0.90);margin-bottom:calc((842px * 0.90) - 842px)}
-.pdf-page{background:white;width:var(--page-w,595px);min-height:var(--page-h,842px);box-shadow:0 2px 20px rgba(0,0,0,.15);border-radius:4px;overflow:hidden;font-family:'Helvetica Neue',Arial,sans-serif;color:#222}
+.pdf-page{background:white;width:595px;min-height:842px;box-shadow:0 2px 20px rgba(0,0,0,.15);border-radius:4px;overflow:hidden;font-family:'Helvetica Neue',Arial,sans-serif;color:#222}
 .pdf-header{background:#0B1F3A;padding:16px 28px;display:flex;align-items:center;gap:14px}
 .pdf-logo{display:flex;align-items:center}
 .pdf-product-title{color:white;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-left:auto;opacity:.85}
@@ -338,7 +338,7 @@ function drawTableHeader(doc, y, W, margin){
 
 function drawSubHeader(doc, y, W, margin){
   const tableW = W-margin*2;
-  const nameColW = numPlans===1 ? tableW - 100 : Math.floor(tableW * 0.40);
+  const nameColW = numPlans===1 ? tableW - 100 : Math.floor(tableW * 0.45);
   const valsTotalW = tableW - nameColW - 16;
   const colW = valsTotalW / numPlans;
   const hdrFontSize = numPlans <= 4 ? 7.5 : numPlans <= 5 ? 7 : 6.5;
@@ -363,13 +363,9 @@ function updatePageSize(){
   const page = document.querySelector('.pdf-page');
   if(!page) return;
   if(numPlans >= 4){
-    page.style.setProperty('--page-w','841px');
-    page.style.setProperty('--page-h','595px');
     page.style.width='841px';
     page.style.minHeight='595px';
   } else {
-    page.style.setProperty('--page-w','595px');
-    page.style.setProperty('--page-h','842px');
     page.style.width='595px';
     page.style.minHeight='842px';
   }
@@ -453,7 +449,7 @@ function downloadPDF(){
   coverages.forEach((c,ci)=>{
     // Column layout: name takes 55% of table, values share the rest equally
     const tableW = W - margin*2;
-    const nameColW = numPlans===1 ? tableW - 100 : Math.floor(tableW * 0.40);
+    const nameColW = numPlans===1 ? tableW - 100 : Math.floor(tableW * 0.45);
     const valsTotalW = tableW - nameColW - 16;
     const colW = valsTotalW / numPlans;
     const fontSize = numPlans <= 3 ? 8 : numPlans <= 5 ? 7 : 6.5;
@@ -488,22 +484,23 @@ function downloadPDF(){
     // Draw name
     doc.setFontSize(fontSize);doc.setFont('helvetica','normal');doc.setTextColor(50,50,50);
     const nameStartY = y + (rowH - nameLines.length*(fontSize+2))/2 + fontSize;
+    // Clip to name column width to prevent overflow
+    doc.saveGraphicsState();
+    doc.rect(margin, y, nameColW+8, rowH).clip().discardPath();
     doc.text(nameLines, margin+8, nameStartY);
+    doc.restoreGraphicsState();
 
-    // Draw values
+    // Draw values - each clipped to its own column
     doc.setFont('helvetica','bold');doc.setTextColor(11,31,58);
-    if(false){
-      const val = c.vals[0]||'—';
-      const vlines = doc.splitTextToSize(val, valsTotalW-8);
+    for(let i=0;i<numPlans;i++){
+      const val = c.vals[i]||'—';
+      const vlines = doc.splitTextToSize(val, colW-4);
       const vStartY = y + (rowH - vlines.length*(fontSize+2))/2 + fontSize;
-      doc.text(vlines, margin+8+nameColW+8+valsTotalW/2, vStartY, {align:'center'});
-    } else {
-      for(let i=0;i<numPlans;i++){
-        const val = c.vals[i]||'—';
-        const vlines = doc.splitTextToSize(val, colW-4);
-        const vStartY = y + (rowH - vlines.length*(fontSize+2))/2 + fontSize;
-        doc.text(vlines, margin+8+nameColW+8+colW*i+colW/2, vStartY, {align:'center'});
-      }
+      const colX = margin+8+nameColW+8+colW*i;
+      doc.saveGraphicsState();
+      doc.rect(colX, y, colW, rowH).clip().discardPath();
+      doc.text(vlines, colX+colW/2, vStartY, {align:'center'});
+      doc.restoreGraphicsState();
     }
     doc.setDrawColor(215,225,238);doc.setLineWidth(0.3);
     doc.line(margin,y+rowH,W-margin,y+rowH);
