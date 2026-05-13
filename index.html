@@ -243,7 +243,16 @@ function buildFeatureRows(){
   const list=document.getElementById('featuresList');
   let h='';
   features.forEach((f,fi)=>{
-    h+=`<div class="feat-row"><div style="flex:1;display:flex;flex-direction:column;gap:4px"><input type="text" value="${escH(f.label)}" placeholder="Título" oninput="features[${fi}].label=this.value;render()" style="font-size:12px"><input type="text" value="${escH(f.sub)}" placeholder="Subtítulo" oninput="features[${fi}].sub=this.value;render()" style="font-size:12px"></div><button class="del-btn" onclick="removeFeature(${fi})">×</button></div>`;
+    h+=`<div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#f8fafc">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.5px">Bloque ${fi+1}</span>
+        <button class="del-btn" onclick="removeFeature(${fi})" style="width:22px;height:22px;font-size:14px">×</button>
+      </div>
+      <label style="font-size:11px;color:#94a3b8;margin-bottom:3px;display:block">Título</label>
+      <input type="text" value="${escH(f.label)}" placeholder="Título" oninput="features[${fi}].label=this.value;render()" style="font-size:12px;width:100%;margin-bottom:6px">
+      <label style="font-size:11px;color:#94a3b8;margin-bottom:3px;display:block">Texto</label>
+      <input type="text" value="${escH(f.sub)}" placeholder="Texto" oninput="features[${fi}].sub=this.value;render()" style="font-size:12px;width:100%">
+    </div>`;
   });
   list.innerHTML=h;
 }
