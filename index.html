@@ -362,6 +362,11 @@ function drawSubHeader(doc, y, W, margin){
   }
 }
 
+function cleanCovName(s){
+  // Remove leading numbers, dots, dashes, spaces — but keep asterisks
+  return s.replace(/^[\d\s.\-\)\(]+/, '').trim();
+}
+
 function downloadPDF(){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4'});
@@ -387,7 +392,7 @@ function downloadPDF(){
     const fontSize = numPlans <= 3 ? 8 : numPlans <= 5 ? 7 : 6.5;
 
     doc.setFontSize(fontSize); doc.setFont('helvetica','normal');
-    const nameLines = doc.splitTextToSize(c.name, nameColW - 8);
+    const nameLines = doc.splitTextToSize(cleanCovName(c.name), nameColW - 8);
     const rowH = Math.max(16, nameLines.length * (fontSize + 3) + 6);
 
     // Page break check
