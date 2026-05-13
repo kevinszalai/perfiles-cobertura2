@@ -202,7 +202,11 @@ async function pasteColumn(colIndex){
   } catch(e) {
     return;
   }
-  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l!=='');
+  // Clean pasted text: remove tabs within cells, normalize spaces
+  const lines = text.split(/\r?\n/)
+    .map(l => l.replace(/\t/g, ' ').trim())  // tabs → spaces
+    .map(l => l.replace(/\s+/g, ' '))         // multiple spaces → one
+    .filter(l => l !== '');
   if(colIndex === -1){
     // Paste coverage names — resize array to match
     while(coverages.length < lines.length) coverages.push({name:'',vals:['','','','','','']});
