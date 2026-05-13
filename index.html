@@ -275,15 +275,15 @@ function drawTableHeader(doc, y, W, margin){
 
 function drawSubHeader(doc, y, W, margin){
   const tableW = W-margin*2;
-  const perCol = numPlans<=3 ? 70 : numPlans<=4 ? 58 : numPlans<=5 ? 50 : 44;
-  const valColW = numPlans===1 ? 90 : perCol*numPlans;
-  const nameColW = tableW - valColW - 16;
+  const nameColW = numPlans===1 ? tableW - 100 : Math.floor(tableW * 0.40);
+  const valsTotalW = tableW - nameColW - 16;
+  const colW = valsTotalW / numPlans;
+  const hdrFontSize = numPlans <= 4 ? 7.5 : numPlans <= 5 ? 7 : 6.5;
   if(numPlans>1){
     doc.setFillColor(26,53,88);
     doc.rect(margin,y,tableW,17,'F');
-    const colW = valColW/numPlans;
     for(let i=0;i<numPlans;i++){
-      doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(200,220,240);
+      doc.setFontSize(hdrFontSize);doc.setFont('helvetica','bold');doc.setTextColor(200,220,240);
       doc.text(planNames[i]||'Plan '+(i+1), margin+8+nameColW+8+colW*i+colW/2, y+11.5, {align:'center'});
     }
     return y+17;
@@ -313,17 +313,18 @@ function downloadPDF(){
   let tableOpenY=tableTopY+2;
 
   coverages.forEach((c,ci)=>{
-    // Fixed column widths to prevent overlap
+    // Column layout: name takes 55% of table, values share the rest equally
     const tableW = W - margin*2;
-    const perCol = numPlans<=3 ? 70 : numPlans<=4 ? 58 : numPlans<=5 ? 50 : 44;
-    const valColW = numPlans===1 ? 90 : perCol*numPlans;
-    const nameColW = tableW - valColW - 16;
+    const nameColW = numPlans===1 ? tableW - 100 : Math.floor(tableW * 0.40);
+    const valsTotalW = tableW - nameColW - 16;
+    const colW = valsTotalW / numPlans;
+    const fontSize = numPlans <= 3 ? 8 : numPlans <= 5 ? 7 : 6.5;
 
-    doc.setFontSize(8); doc.setFont('helvetica','normal');
-    const nameLines = doc.splitTextToSize(c.name, nameColW);
-    const rowH = Math.max(15, nameLines.length * 11 + 6);
+    doc.setFontSize(fontSize); doc.setFont('helvetica','normal');
+    const nameLines = doc.splitTextToSize(c.name, nameColW - 8);
+    const rowH = Math.max(16, nameLines.length * (fontSize + 3) + 6);
 
-    // Check again with actual row height
+    // Page break check
     if(y + rowH > H - bottomReserve){
       doc.setDrawColor(11,31,58);doc.setLineWidth(1.5);
       doc.roundedRect(margin,tableOpenY,W-margin*2,y-tableOpenY,6,6);
@@ -338,18 +339,22 @@ function downloadPDF(){
     const isOdd=ci%2===0;
     doc.setFillColor(isOdd?247:255,isOdd?249:255,isOdd?252:255);
     doc.rect(margin,y,W-margin*2,rowH,'F');
-    doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(50,50,50);
-    const textY = y + (rowH/2) - ((nameLines.length-1)*5.5) + 3;
-    doc.text(nameLines, margin+8, textY);
 
+    // Draw name
+    doc.setFontSize(fontSize);doc.setFont('helvetica','normal');doc.setTextColor(50,50,50);
+    const nameStartY = y + (rowH - nameLines.length*(fontSize+2))/2 + fontSize;
+    doc.text(nameLines, margin+8, nameStartY);
+
+    // Draw values
+    doc.setFont('helvetica','bold');doc.setTextColor(11,31,58);
+    const valY = y + rowH/2 + fontSize/3;
     if(numPlans===1){
-      doc.setFont('helvetica','bold');doc.setTextColor(11,31,58);
-      doc.text(c.vals[0]||'—', W-margin-8, y+rowH/2+3, {align:'right'});
+      doc.text(c.vals[0]||'—', margin+8+nameColW+8+valsTotalW/2, valY, {align:'center'});
     } else {
-      const colW=(tableW - nameColW - 16)/numPlans;
       for(let i=0;i<numPlans;i++){
-        doc.setFont('helvetica','bold');doc.setTextColor(11,31,58);
-        doc.text(c.vals[i]||'—', margin+8+nameColW+8+colW*i+colW/2, y+rowH/2+3, {align:'center'});
+        const val = c.vals[i]||'—';
+        const vlines = doc.splitTextToSize(val, colW-4);
+        doc.text(vlines[0], margin+8+nameColW+8+colW*i+colW/2, valY, {align:'center'});
       }
     }
     doc.setDrawColor(215,225,238);doc.setLineWidth(0.3);
