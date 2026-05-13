@@ -275,7 +275,8 @@ function drawTableHeader(doc, y, W, margin){
 
 function drawSubHeader(doc, y, W, margin){
   const tableW = W-margin*2;
-  const valColW = numPlans===1 ? 90 : 75*numPlans;
+  const perCol = numPlans<=3 ? 70 : numPlans<=4 ? 58 : numPlans<=5 ? 50 : 44;
+  const valColW = numPlans===1 ? 90 : perCol*numPlans;
   const nameColW = tableW - valColW - 16;
   if(numPlans>1){
     doc.setFillColor(26,53,88);
@@ -314,7 +315,8 @@ function downloadPDF(){
   coverages.forEach((c,ci)=>{
     // Fixed column widths to prevent overlap
     const tableW = W - margin*2;
-    const valColW = numPlans===1 ? 90 : Math.min(75*numPlans, W-margin*2-120);
+    const perCol = numPlans<=3 ? 70 : numPlans<=4 ? 58 : numPlans<=5 ? 50 : 44;
+    const valColW = numPlans===1 ? 90 : perCol*numPlans;
     const nameColW = tableW - valColW - 16;
 
     doc.setFontSize(8); doc.setFont('helvetica','normal');
