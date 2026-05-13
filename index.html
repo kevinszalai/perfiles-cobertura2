@@ -71,12 +71,16 @@ textarea{resize:vertical;min-height:52px}
 .paste-btn{font-size:11px;color:#0B1F3A;background:#e8f0f9;border:1px solid #b8d0ea;border-radius:5px;padding:4px 8px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .15s}
 .paste-btn:hover{background:#d0e4f5}
 .paste-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:white;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.toast.error{background:#c0392b}
 .resizer{width:6px;background:#e2e8f0;cursor:col-resize;flex-shrink:0;transition:background .15s;position:relative;z-index:10}
 .resizer:hover,.resizer.dragging{background:#E8196E}
 .resizer::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:40px;background:rgba(0,0,0,.15);border-radius:2px}
 </style>
 </head>
 <body>
+<div id="toast" class="toast"></div>
 <div class="app">
   <div class="sidebar">
     <div class="sidebar-header">
@@ -355,6 +359,14 @@ function drawSubHeader(doc, y, W, margin){
   }
 }
 
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show','error');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show','error'), 3500);
+}
+
 function cleanCovName(s){
   // Remove leading numbers, dots, dashes, spaces — but keep asterisks
   return s.replace(/^[\d\s.\-\)\(]+/, '').trim();
@@ -372,7 +384,7 @@ function downloadPDF(){
       planValid = false;
     }
   });
-  if(!planValid) return;
+  if(!planValid){ showToast('⚠️ Completá el nombre de todos los planes antes de descargar'); return; }
 
   // Validate legales
   const footnoteVal = document.getElementById('footnote').value.trim();
@@ -381,8 +393,8 @@ function downloadPDF(){
     el.style.borderColor = '#E8196E';
     el.style.boxShadow = '0 0 0 2px rgba(232,25,110,0.2)';
     el.focus();
-    el.placeholder = 'Este campo es obligatorio';
     setTimeout(()=>{ el.style.borderColor=''; el.style.boxShadow=''; }, 3000);
+    showToast('⚠️ El campo Legales es obligatorio');
     return;
   }
   const {jsPDF}=window.jspdf;
