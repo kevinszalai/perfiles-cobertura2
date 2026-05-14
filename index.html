@@ -122,14 +122,14 @@ textarea{resize:vertical;min-height:52px}
     <div class="section">
       <div class="section-title">Destacados del pie</div>
       <div id="featuresList"></div>
-
+      <button class="add-btn" onclick="addFeature()">+ Agregar bloque</button>
     </div>
     <div class="section">
       <label>Legales <span style="color:#E8196E">*</span></label>
-      <textarea id="footnote" oninput="render()" rows="3" style="font-size:11px" placeholder="Campo obligatorio"></textarea>
+      <textarea id="footnote" oninput="render()" rows="3" style="font-size:11px;resize:none" placeholder="Campo obligatorio"></textarea>
       <div style="margin-top:8px">
         <label>Banner</label>
-        <textarea id="banner" oninput="render()" rows="2" style="font-size:11px">Consulta con tu asesor de ventas la totalidad de nuestras coberturas y las novedades que tenemos para ti</textarea>
+        <textarea id="banner" oninput="render()" rows="2" style="font-size:11px;resize:none">Consulta con tu asesor de ventas la totalidad de nuestras coberturas y las novedades que tenemos para ti</textarea>
       </div>
     </div>
     <button class="generate-btn" onclick="downloadPDF()">⬇ Descargar PDF</button>
@@ -149,9 +149,9 @@ let coverages = [
   {name:'',vals:['','','','','','']},
 ];
 let features = [
-  {icon:'🦠',label:'Cobertura frente a covid-19',sub:'Consulta las tarifas especiales'},
-  {icon:'💊',label:'Preexistencias',sub:'Amplia el tope en asistencia médica por preexistencias'},
-  {icon:'👨‍⚕️',label:'Teleasistencia médica',sub:'Servicios médicos de calidad las 24 horas del día'},
+  {icon:'🛡️',label:'Teleasistencia médica',sub:'Servicios médicos de calidad las 24 horas del día'},
+  {icon:'🛡️',label:'Preexistencias',sub:'Amplia el tope en asistencia médica por preexistencias'},
+  {icon:'🛡️',label:'Cobertura frente a covid-19',sub:'Consulta las tarifas especiales'},
 ];
 const ICONS=['🦠','💊','👨‍⚕️','✈️','🏥','🦷','🚑','📋','🛡️','💼','🌍','📞','⭐','🔒','📱'];
 
@@ -244,19 +244,26 @@ function buildCoverageRows(){
   });
   list.innerHTML=h;
 }
+
 function buildFeatureRows(){
   const list=document.getElementById('featuresList');
+  const addBtn = document.querySelector('[onclick="addFeature()"]');
+  if(addBtn) addBtn.style.display = features.length >= 3 ? 'none' : 'flex';
   let h='';
   features.forEach((f,fi)=>{
     h+=`<div style="border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#f8fafc">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.5px">Bloque ${fi+1}</span>
-        <button class="del-btn" onclick="removeFeature(${fi})" style="width:22px;height:22px;font-size:14px">×</button>
+        <button onclick="removeFeature(${fi})" style="font-size:11px;color:#c0392b;background:none;border:1px solid #fcc;border-radius:5px;padding:3px 8px;cursor:pointer;font-family:inherit">🗑 Eliminar</button>
       </div>
       <label style="font-size:11px;color:#94a3b8;margin-bottom:3px;display:block">Título</label>
       <input type="text" value="${escH(f.label)}" placeholder="Título" oninput="features[${fi}].label=this.value;render()" style="font-size:12px;width:100%;margin-bottom:6px">
-      <label style="font-size:11px;color:#94a3b8;margin-bottom:3px;display:block">Texto</label>
-      <input type="text" value="${escH(f.sub)}" placeholder="Texto" oninput="features[${fi}].sub=this.value;render()" style="font-size:12px;width:100%">
+      <label style="font-size:11px;color:#94a3b8;margin-bottom:3px;display:block">Descripción</label>
+      <textarea placeholder="Descripción" oninput="
+        const lines=this.value.split('\n');
+        if(lines.length>3){this.value=lines.slice(0,3).join('\n');}
+        features[${fi}].sub=this.value;render();
+      " style="font-size:12px;width:100%;min-height:52px;resize:none">${escH(f.sub)}</textarea>
     </div>`;
   });
   list.innerHTML=h;
@@ -268,7 +275,7 @@ function clearCoverages(){
 
 function addCoverage(){coverages.push({name:'',vals:['','','','','','']});buildCoverageRows();render();}
 function removeCoverage(i){coverages.splice(i,1);buildCoverageRows();render();}
-function addFeature(){features.push({icon:'🛡️',label:'Título',sub:'Descripción'});buildFeatureRows();render();}
+function addFeature(){if(features.length>=3){showToast('⚠️ Máximo 3 bloques permitidos');return;}features.push({icon:'🛡️',label:'Título',sub:'Descripción'});buildFeatureRows();render();}
 function removeFeature(i){features.splice(i,1);buildFeatureRows();render();}
 
 function render(){
@@ -283,7 +290,7 @@ function render(){
     let v=numPlans===1?`<span class="pdf-cov-val">${escH(c.vals[0]||'—')}</span>`:Array.from({length:numPlans},(_,i)=>`<span class="pdf-cov-val-multi">${escH(c.vals[i]||'—')}</span>`).join('');
     return `<div class="pdf-cov-row"><span class="pdf-cov-name">${escH(cleanCovName(c.name))}</span>${v}</div>`;
   }).join('');
-  let icons=features.map(f=>`<div class="pdf-icon-card"><div><div class="pdf-icon-label">${escH(f.label)}</div><div class="pdf-icon-sub">${escH(f.sub)}</div></div></div>`).join('');
+  let icons=features.map(f=>`<div class="pdf-icon-card"><div><div class="pdf-icon-label">${escH(f.label)}</div><div class="pdf-icon-sub">${escH(f.sub).replace(/\n/g,"<br>")}</div></div></div>`).join('');
   document.getElementById('pdfPreview').innerHTML=`
     <div class="pdf-header">
       <div class="pdf-logo"><img src="${LOGO_DATA}" style="height:36px;width:auto;display:block;mix-blend-mode:screen" alt="UA"></div>
@@ -294,7 +301,7 @@ function render(){
         <div class="pdf-table-head"><h2>COBERTURAS</h2></div>
         <div class="pdf-col-headers">${colHdr}</div>
         ${rows}
-      </div>
+              </div>
       <div class="pdf-footnote">${escH(footnote)}</div>
       ${icons?`<div class="pdf-icons-row">${icons}</div>`:''}
       <div class="pdf-banner">${escH(banner)}</div>
@@ -397,11 +404,14 @@ function downloadPDF(){
       showToast('⚠️ Hay coberturas vacías. Completalas o eliminalas');
       return;
     }
-    for(let i=0;i<numPlans;i++){
-      if(!c.vals[i].trim()){
-        showToast(`⚠️ Falta el valor de "${c.name.trim()}" para ${planNames[i]||'Plan '+(i+1)}`);
-        return;
-      }
+
+  }
+
+  // Validate feature blocks
+  for(let fi=0; fi<features.length; fi++){
+    if(!features[fi].label.trim() || !features[fi].sub.trim()){
+      showToast(`⚠️ El Bloque ${fi+1} tiene campos vacíos. Completalo o eliminalo`);
+      return;
     }
   }
 
@@ -540,7 +550,8 @@ function downloadPDF(){
       const ll=doc.splitTextToSize(f.label,featW-16);
       doc.text(ll,fx+8,y+12);
       doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(90,90,90);
-      const sl=doc.splitTextToSize(f.sub,featW-16);
+      const subText = f.sub.replace(/\r/g,'');
+      const sl=doc.splitTextToSize(subText,featW-16);
       doc.text(sl,fx+8,y+12+(ll.length*9));
     });
     y+=48;
